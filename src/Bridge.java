@@ -28,4 +28,9 @@ public class Bridge {
         stt = openConnection();
         return stt.executeQuery("SELECT * FROM peminjaman");
     }
+
+    public ResultSet getSearch(String key) throws SQLException {
+        stt = openConnection();
+        return stt.executeQuery("SELECT * FROM peminjaman WHERE kode_pinjam="+key);
+    }
 }

@@ -1,8 +1,9 @@
 import javax.swing.*;
 import java.awt.BorderLayout;
+import java.awt.event.*;
 import java.sql.*;
 
-public class Tampilan extends JFrame{
+public class Tampilan extends JFrame implements ActionListener{
         Bridge hub = new Bridge();
 
         JLabel lb_kode = new JLabel();
@@ -50,42 +51,42 @@ public class Tampilan extends JFrame{
         JPanel jp = new JPanel();
 
         Tampilan() throws ClassNotFoundException, SQLException{
-                setTitle("Winamp versi Thoriq");
+                setTitle("RESPONSI PAG - PERPUSTAKAAN | 201055001");
                 setSize(840, 450);
                 setLayout(null);
 
                 // Kode Peminjaman
                 lb_kode.setBounds(15, 10, 200, 30);
                 lb_kode.setText("Kode Peminjaman");
-                tf_kode.setBounds(200, 10, 100, 30);
+                tf_kode.setBounds(200, 10, 150, 30);
                 tf_kode.setText("");
                 // End Kode Peminjaman
 
                 // Nama Peminjaman
                 lb_nama.setBounds(15, 50, 200, 30);
                 lb_nama.setText("Nama Peminjam");
-                tf_nama.setBounds(200, 50, 100, 30);
+                tf_nama.setBounds(200, 50, 150, 30);
                 tf_nama.setText("");
                 // End Nama Peminjaman
 
                 // Buku
                 lb_buku.setBounds(15, 90, 200, 30);
                 lb_buku.setText("Nama Buku");
-                tf_buku.setBounds(200, 90, 100, 30);
+                tf_buku.setBounds(200, 90, 150, 30);
                 tf_buku.setText("");
                 // End Buku
 
                 // Tanggal Pinjam
                 lb_tglPinjam.setBounds(15, 140, 200, 30);
                 lb_tglPinjam.setText("Tanggal Pinjam");
-                tf_tglPinjam.setBounds(200, 140, 100, 30);
+                tf_tglPinjam.setBounds(200, 140, 150, 30);
                 tf_tglPinjam.setText("");
                 // End Tanggal Pinjam
 
                 // Deadline
                 lb_deadline.setBounds(15, 190, 200, 30);
                 lb_deadline.setText("Tanggal Harus Kembali");
-                tf_deadline.setBounds(200, 190, 100, 30);
+                tf_deadline.setBounds(200, 190, 150, 30);
                 tf_deadline.setText("");
                 // End Deadline
 
@@ -104,17 +105,20 @@ public class Tampilan extends JFrame{
                 // Button
                 btn_cari.setBounds(400, 20, 100, 40);
                 btn_cari.setText("Cari");
+                btn_cari.addActionListener(this);
                 btn_simpan.setBounds(400, 70, 100, 40);
                 btn_simpan.setText("Simpan");
+                btn_simpan.addActionListener(this);
                 btn_hapus.setBounds(400, 120, 100, 40);
                 btn_hapus.setText("Hapus");
+                btn_hapus.addActionListener(this);
                 btn_keluar.setBounds(400, 170, 100, 40);
                 btn_keluar.setText("Keluar");
+                btn_keluar.addActionListener(this);
                 // End Button
 
                 // Tabel
                 tabel.setBounds(0, 0, 800, 200);
-
                 hub.koneksiMysql();
                 getData();
                 sp.setViewportView(tabel);
@@ -172,13 +176,67 @@ public class Tampilan extends JFrame{
                                 tabel.setValueAt(tgl_pinjam, baris, 4);
                                 tabel.setValueAt(deadline, baris, 5);
                                 tabel.setValueAt(tgl_kembali, baris, 6);
-                                tabel.setValueAt(status, baris, 7);
+                                tabel.setValueAt(status.toUpperCase(), baris, 7);
                                 nomor++;
                                 baris++;
                         }
-                        hub.closeConnection();
+                        // hub.closeConnection();
                 } catch (SQLException e) {
                         e.printStackTrace();
                 }
+        }
+
+        public void cariData(String yangDicari){
+                try{
+                        Statement stt = hub.openConnection();
+                        ResultSet res = stt.executeQuery("SELECT * FROM peminjaman WHERE kode_pinjam = '" + yangDicari + "'");
+                        while(res.next()){
+                                String kode = res.getString("kode_pinjam");
+                                String nama = res.getString("nama_peminjam");
+                                String buku = res.getString("judul_buku");
+                                String tglPinjam = res.getString("tanggal_pinjam");
+                                String deadline = res.getString("harus_kembali");
+                                String kembali = res.getString("tanggal_kembali");
+                                String status = res.getString("status");
+
+                                tf_kode.setText(kode);
+                                tf_nama.setText(nama);
+                                tf_buku.setText(buku);
+                                tf_tglPinjam.setText(tglPinjam);
+                                tf_deadline.setText(deadline);
+                                tf_kembali.setText(kembali);
+
+                                if(status.equals("dipinjam")){
+                                        stts_dipinjam.setSelected(true);
+                                } else if (status.equals("dikembalikan")){
+                                        stts_dikembalikan.setSelected(true);
+                                } else {
+                                        stts_belumKembali.setSelected(true);
+                                }
+                        }
+                        hub.closeConnection();
+                } catch (SQLException e){
+                        e.printStackTrace();
+                }
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+                Object sumberBtn = e.getSource();
+                if (sumberBtn == btn_cari){
+                        String dicari = tf_kode.getText().toUpperCase();
+                        if(dicari.equals("")){
+                                JOptionPane.showMessageDialog(this, "Harap isi terlebih dahulu!", "Responsi", JOptionPane.WARNING_MESSAGE);
+                        }else {
+                                cariData(dicari.trim());
+                        }
+                } else if (sumberBtn == btn_simpan){
+
+                } else if (sumberBtn == btn_hapus) {
+
+                } else {
+                        System.exit(0);
+                }
+                
         }
 }
