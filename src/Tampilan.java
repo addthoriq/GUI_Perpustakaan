@@ -30,6 +30,7 @@ public class Tampilan extends JFrame implements ActionListener{
         JButton btn_cari = new JButton();
         JButton btn_simpan = new JButton();
         JButton btn_hapus = new JButton();
+        JButton btn_reset = new JButton();
         JButton btn_keluar = new JButton();
 
         String column[] = {"Nomor", "Kode", "Peminjam", "Buku", "Tgl Pinjam", "Harus Kembali", "Tgl Kembali", "Status"};
@@ -52,7 +53,7 @@ public class Tampilan extends JFrame implements ActionListener{
 
         Tampilan() throws ClassNotFoundException, SQLException{
                 setTitle("RESPONSI PAG - PERPUSTAKAAN | 201055001");
-                setSize(840, 450);
+                setSize(880, 450);
                 setLayout(null);
 
                 // Kode Peminjaman
@@ -94,39 +95,45 @@ public class Tampilan extends JFrame implements ActionListener{
                 lb_status.setBounds(15, 240, 200, 30);
                 lb_status.setText("Status Peminjaman");
                 stts_dipinjam.setBounds(200, 240, 100, 30);
+                stts_dipinjam.setActionCommand("dipinjam");
                 stts_dikembalikan.setBounds(300, 240, 125, 30);
+                stts_dikembalikan.setActionCommand("dikembalikan");
                 stts_belumKembali.setBounds(430, 240, 200, 30);
+                stts_belumKembali.setActionCommand("belum kembali");
                 bg.add(stts_dipinjam);
                 bg.add(stts_dikembalikan);
                 bg.add(stts_belumKembali);
+                bg.setSelected(stts_dipinjam.getModel(), true);
                 // End Status
 
 
                 // Button
-                btn_cari.setBounds(400, 20, 100, 40);
+                btn_cari.setBounds(400, 20, 100, 30);
                 btn_cari.setText("Cari");
                 btn_cari.addActionListener(this);
-                btn_simpan.setBounds(400, 70, 100, 40);
+                btn_simpan.setBounds(400, 60, 100, 30);
                 btn_simpan.setText("Simpan");
                 btn_simpan.addActionListener(this);
-                btn_hapus.setBounds(400, 120, 100, 40);
+                btn_hapus.setBounds(400, 100, 100, 30);
                 btn_hapus.setText("Hapus");
                 btn_hapus.addActionListener(this);
-                btn_keluar.setBounds(400, 170, 100, 40);
+                btn_reset.setBounds(400, 140, 100, 30);
+                btn_reset.setText("Reset");
+                btn_reset.addActionListener(this);
+                btn_keluar.setBounds(400, 180, 100, 30);
                 btn_keluar.setText("Keluar");
                 btn_keluar.addActionListener(this);
                 // End Button
 
                 // Tabel
-                tabel.setBounds(0, 0, 800, 200);
+                tabel.setBounds(0, 0, 850, 200);
                 hub.koneksiMysql();
                 getData();
                 sp.setViewportView(tabel);
                 // End Tabel
 
-
                 // Panel
-                jp.setBounds(15, 300, 800, 100);
+                jp.setBounds(15, 300, 850, 100);
                 jp.setLayout(new BorderLayout());
                 jp.add(sp);
                 // End Panel
@@ -148,6 +155,7 @@ public class Tampilan extends JFrame implements ActionListener{
                 add(btn_cari);
                 add(btn_simpan);
                 add(btn_hapus);
+                add(btn_reset);
                 add(btn_keluar);
                 add(jp, BorderLayout.CENTER);
 
@@ -186,7 +194,7 @@ public class Tampilan extends JFrame implements ActionListener{
                 }
         }
 
-        public void cariData(String yangDicari){
+        public void cariData(String yangDicari) throws SQLException{
                 try{
                         Statement stt = hub.openConnection();
                         ResultSet res = stt.executeQuery("SELECT * FROM peminjaman WHERE kode_pinjam = '" + yangDicari + "'");
@@ -214,29 +222,74 @@ public class Tampilan extends JFrame implements ActionListener{
                                         stts_belumKembali.setSelected(true);
                                 }
                         }
-                        hub.closeConnection();
                 } catch (SQLException e){
-                        e.printStackTrace();
+                        JOptionPane.showMessageDialog(null, "Data Tidak Ada!", "Data tidak ada!", JOptionPane.WARNING_MESSAGE);
                 }
         }
         
         @Override
         public void actionPerformed(ActionEvent e) {
                 Object sumberBtn = e.getSource();
-                if (sumberBtn == btn_cari){
-                        String dicari = tf_kode.getText().toUpperCase();
-                        if(dicari.equals("")){
-                                JOptionPane.showMessageDialog(this, "Harap isi terlebih dahulu!", "Responsi", JOptionPane.WARNING_MESSAGE);
-                        }else {
-                                cariData(dicari.trim());
+                String kode = tf_kode.getText().toUpperCase();
+                String nama = tf_nama.getText();
+                String buku = tf_buku.getText();
+                String tglPinjam = tf_tglPinjam.getText();
+                String deadline = tf_deadline.getText();
+                String kembali = tf_kembali.getText();
+                String status = bg.getSelection().getActionCommand(); // bg.getSelection().getActionCommand();
+
+                if (sumberBtn == btn_cari) {
+                        if (kode.equals("")) {
+                                JOptionPane.showMessageDialog(this, "Harap isi terlebih dahulu!", "Responsi",  JOptionPane.WARNING_MESSAGE);
+                        } else {
+                                try {
+                                        cariData(kode.trim());
+                                } catch (SQLException e1) {
+                                        e1.printStackTrace();
+                                        // JOptionPane.showMessageDialog(null, "Data Tidak Ada!", "Data tidak ada!", JOptionPane.WARNING_MESSAGE);
+                                }
                         }
-                } else if (sumberBtn == btn_simpan){
+                } else if (sumberBtn == btn_simpan) {
+                        // status = bg.getSelection().toString();
+                        if (kode.equals("") && nama.equals("") && buku.equals("") && tglPinjam.equals("")
+                                        && deadline.equals("") && kembali.equals("") && status.equals("")) {
+                                JOptionPane.showMessageDialog(this, "Harap isi terlebih dahulu!", "Responsi",
+                                                JOptionPane.WARNING_MESSAGE);
+                        } else {
+                                for (int index = 0; index < tabel.getRowCount(); index++) {
+                                        if (kode.equals(tabel.getValueAt(index, 1))) {
+                                                // Jalankan Update Data
+                                                try {
+                                                        hub.updateData(kode, nama, buku, tglPinjam, deadline, kembali, status);
+                                                        getData();
+                                                } catch (SQLException e1) {
+                                                        e1.printStackTrace();
+                                                }
+                                                getData();
+                                        } else {
+                                                // Jalankan Insert
+                                                try {
+                                                        hub.insertData(kode, nama, buku, tglPinjam, deadline, "", status);
+                                                        getData();
+                                                } catch (SQLException e1) {
+                                                        e1.printStackTrace();
+                                                }
+                                        }
+                                }
+                        }
 
                 } else if (sumberBtn == btn_hapus) {
-
+                        System.exit(0);
+                } else if (sumberBtn == btn_reset) {
+                        tf_kode.setText("");
+                        tf_nama.setText("");
+                        tf_buku.setText("");
+                        tf_tglPinjam.setText("");
+                        tf_deadline.setText("");
+                        tf_kembali.setText("");
                 } else {
                         System.exit(0);
                 }
-                
+
         }
 }
