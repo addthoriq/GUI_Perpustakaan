@@ -5,6 +5,7 @@ public class Bridge {
     private String url, usr, pass;
     private Connection koneksi;
     private Statement stt;
+    private PreparedStatement stat;
 
     Bridge(){
         this.url = "jdbc:mysql://localhost:3306/perpustakaan";
@@ -36,7 +37,7 @@ public class Bridge {
     }
 
     public void insertData(String kode, String nama, String buku, String tglPinjam, String harusKembali, String kembali, String status) throws SQLException{
-        PreparedStatement stat = koneksi.prepareStatement("INSERT INTO peminjaman(kode_pinjam, nama_peminjam, judul_buku, tanggal_pinjam, harus_kembali, tanggal_kembali, status) VALUES (?,?,?,?,?,?,?)");
+        stat = koneksi.prepareStatement("INSERT INTO peminjaman(kode_pinjam, nama_peminjam, judul_buku, tanggal_pinjam, harus_kembali, tanggal_kembali, status) VALUES (?,?,?,?,?,?,?)");
         try {
             stat.setString(1, kode.toUpperCase());
             stat.setString(2, nama);
@@ -48,15 +49,13 @@ public class Bridge {
             stat.executeUpdate();
         } catch (Exception e) {
             // JOptionPane.showMessageDialog(null, "Data Tidak Disimpan", "Gagal", JOptionPane.WARNING_MESSAGE);
-            e.printStackTrace();
+            // e.printStackTrace();
         }
         stat.close();
     }
 
-    public void updateData(String kode, String nama, String buku, String tglPinjam, String harusKembali, String kembali,
-            String status) throws SQLException {
-        PreparedStatement stat = koneksi.prepareStatement(
-                "UPDATE peminjaman SET kode_pinjam = ?, nama_peminjam = ?, judul_buku = ?, tanggal_pinjam = ?, harus_kembali = ?, tanggal_kembali = ?, status = ? WHERE kode_pinjam = ?");
+    public void updateData(String kode, String nama, String buku, String tglPinjam, String harusKembali, String kembali, String status) throws SQLException {
+        stat = koneksi.prepareStatement("UPDATE peminjaman SET kode_pinjam = ?, nama_peminjam = ?, judul_buku = ?, tanggal_pinjam = ?, harus_kembali = ?, tanggal_kembali = ?, status = ? WHERE kode_pinjam = ?");
         try {
             stat.setString(1, kode.toUpperCase());
             stat.setString(2, nama);
@@ -70,7 +69,18 @@ public class Bridge {
         } catch (Exception e) {
             // JOptionPane.showMessageDialog(null, "Data Tidak Disimpan", "Gagal",
             // JOptionPane.WARNING_MESSAGE);
-            e.printStackTrace();
+            // e.printStackTrace();
+        }
+        stat.close();
+    }
+
+    public void deleteData(String kode) throws SQLException {
+        stat = koneksi.prepareStatement("DELETE FROM peminjaman WHERE kode_pinjam = ?");
+        try {
+            stat.setString(1, kode.toUpperCase());
+            stat.executeUpdate();
+        } catch (Exception e) {
+            // e.printStackTrace();
         }
         stat.close();
     }
